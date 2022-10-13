@@ -1,0 +1,53 @@
+-- ----------------------------
+-- Table structure for `coremailbridge_matcher`
+-- ----------------------------
+CREATE TABLE `coremailbridge_matcher` (
+  `id` bigint(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `role_info` varchar(255) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `create_time` datetime DEFAULT NULL,
+  `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Table structure for `coremailbridge_role`
+-- ----------------------------
+CREATE TABLE `coremailbridge_role` (
+  `ROLE_ID` bigint(20) NOT NULL,
+  `ROLE_NAME` varchar(30) NOT NULL,
+  PRIMARY KEY (`ROLE_ID`),
+  UNIQUE KEY `APP_ROLE_UK` (`ROLE_NAME`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Table structure for `coremailbridge_user`
+-- ----------------------------
+CREATE TABLE `coremailbridge_user` (
+  `id` bigint(11) NOT NULL AUTO_INCREMENT,
+  `user_name` varchar(255) NOT NULL,
+  `display_name` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `department_code` varchar(255) NOT NULL,
+  `nim_account` varchar(255) DEFAULT NULL,
+  `nim_token` varchar(255) DEFAULT NULL,
+  `qs_account` varchar(255) DEFAULT NULL,
+  `create_time` datetime NOT NULL,
+  `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Table structure for `coremailbridge_user_role`
+-- ----------------------------
+CREATE TABLE `coremailbridge_user_role` (
+  `ID` bigint(20) NOT NULL,
+  `USER_ID` bigint(20) NOT NULL,
+  `ROLE_ID` bigint(20) NOT NULL,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `USER_ROLE_UK` (`USER_ID`,`ROLE_ID`),
+  KEY `USER_ROLE_FK2` (`ROLE_ID`),
+  CONSTRAINT `USER_ROLE_FK1` FOREIGN KEY (`USER_ID`) REFERENCES `coremailbridge_user` (`id`),
+  CONSTRAINT `USER_ROLE_FK2` FOREIGN KEY (`ROLE_ID`) REFERENCES `coremailbridge_role` (`ROLE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

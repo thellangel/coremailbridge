@@ -1,0 +1,18 @@
+INSERT INTO `coremailbridge_matcher` VALUES ('1', '/userInfo', 'hasAnyRole(\'ROLE_USER\', \'ROLE_ADMIN\')', null, '2018-11-14 16:00:03', '2018-11-14 16:00:03');
+INSERT INTO `coremailbridge_matcher` VALUES ('3', '/admin', 'hasRole(\'ROLE_ADMIN\')', null, '2018-11-14 16:00:28', '2018-11-14 16:00:39');
+INSERT INTO `coremailbridge_matcher` VALUES ('5', '/event/mine', 'hasRole(\'ROLE_USER\')', '我的活动', '2018-11-15 10:50:29', '2018-12-09 23:54:08');
+INSERT INTO `coremailbridge_matcher` VALUES ('7', '/event/lastest', 'hasRole(\'ROLE_USER\')', '最新活动', '2018-12-10 13:35:37', '2018-12-10 13:35:37');
+INSERT INTO `coremailbridge_matcher` VALUES ('9', '/event/edit', 'hasRole(\'ROLE_USER\')', null, '2018-12-10 13:35:35', '2018-12-10 13:35:35');
+INSERT INTO `coremailbridge_matcher` VALUES ('10', '/event/overview', 'hasRole(\'ROLE_USER\')', null, '2018-12-10 19:30:28', '2018-12-10 19:30:30');
+INSERT INTO `coremailbridge_matcher` VALUES ('11', '/event/republish', 'hasRole(\'ROLE_USER\')', null, '2018-12-11 16:47:05', '2018-12-11 16:47:07');
+INSERT INTO `coremailbridge_matcher` VALUES ('12', '/event/report', 'hasRole(\'ROLE_USER\')', null, '2018-12-14 15:21:31', '2018-12-14 15:21:33');
+
+INSERT INTO `coremailbridge_role` VALUES ('1', 'ROLE_ADMIN');
+INSERT INTO `coremailbridge_role` VALUES ('2', 'ROLE_USER');
+
+INSERT INTO `coremailbridge_user` VALUES ('1', 'dbadmin1', '管理员1', '$2a$10$PrI5Gk9L.tSZiW9FXhTS8O8Mz9E97k2FZbFvGFFaSsiTUIl.TCrFu', 'dbadmin', 'qs_gxqts_backend_user_1', '0395c9a2771bc78232cb6077f0fc83c1', 'xiaoyu.wang@quanshi.com', '2018-11-13 10:52:22', '2018-12-14 15:17:18');
+INSERT INTO `coremailbridge_user` VALUES ('3', 'dbuser1', 'dbuser1', '$2a$10$PrI5Gk9L.tSZiW9FXhTS8O8Mz9E97k2FZbFvGFFaSsiTUIl.TCrFu', 'dbuser1', null, null, 'qs_chatroom_dbuser1', '2018-11-14 10:52:50', '2018-12-03 14:57:59');
+
+INSERT INTO `coremailbridge_user_role` VALUES ('1', '1', '1');
+INSERT INTO `coremailbridge_user_role` VALUES ('2', '1', '2');
+INSERT INTO `coremailbridge_user_role` VALUES ('3', '3', '2');
