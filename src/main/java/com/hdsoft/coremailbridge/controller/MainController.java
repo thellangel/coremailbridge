@@ -2,6 +2,7 @@ package com.hdsoft.coremailbridge.controller;
 
 import java.security.Principal;
 
+import com.hdsoft.coremailbridge.service.impl.CoreMailService;
 import com.hdsoft.coremailbridge.utils.WebUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
@@ -13,10 +14,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class MainController {
 
-    @RequestMapping(value = { "/", "/welcome" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/mainPage" }, method = RequestMethod.GET)
     public String welcomePage(Model model) {
-        model.addAttribute("title", "Welcome");
-        model.addAttribute("message", "This is welcome page!");
+        try {
+            CoreMailService coreMailService = new CoreMailService("http://116.198.25.145:9900/apiws/services/API?wsdl");
+            String url = coreMailService.userLogin("feishu@baicgroup.com.cn", "style=1");
+            return "redirect:" + url;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
         return "welcomePage";
     }
 
