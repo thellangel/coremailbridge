@@ -43,6 +43,13 @@ public class UserServiceImpl implements UserService {
 		return cusUserMapper.selectUserRoles(parameters);
 	}
 
+	@Override
+	public List<User> listUsers() {
+		UserExample example = new UserExample();
+		example.createCriteria().andFsUnionIdIsNotNull().andStatusEqualTo(true);
+		return userMapper.selectByExample(example);
+	}
+
 
 	/* (non-Javadoc)
 	 * @see com.hdsoft.service.UserService#findUserAccount(java.lang.String)

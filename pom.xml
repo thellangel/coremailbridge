@@ -220,6 +220,30 @@
 	        <artifactId>spring-boot-starter-oauth2-client</artifactId>
 	    </dependency>
 	</dependencies>
+	<profiles>
+		<!--本地测试环境-->
+		<profile>
+			<id>dev</id>
+			<properties>
+				<build.profile.id>dev</build.profile.id>
+				<deployTarget>http://10.147.17.187:8080/manager/text</deployTarget>
+				<deployPath>/coremaildev</deployPath>
+				<deployUsername>wxydeploy</deployUsername>
+				<deployPassword>p!ssword</deployPassword>
+			</properties>
+		</profile>
+		<profile>
+			<id>prod</id>
+			<properties>
+				<build.profile.id>prod</build.profile.id>
+				<deployTarget>http://10.147.17.187:8080/manager/text</deployTarget>
+				<deployPath>/coremailtest</deployPath>
+				<deployUsername>wxydeploy</deployUsername>
+				<deployPassword>p!ssword</deployPassword>
+			</properties>
+		</profile>
+	</profiles>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -252,11 +276,11 @@
 				<version>2.2</version>
 				<configuration>
 					<uriEncoding>UTF-8</uriEncoding>
-					<url>http://192.168.39.30:8080/manager/text</url>
-					<username>wxydeploy</username>
-					<password>p!ssword</password>
+					<url>${deployTarget}</url>
+					<username>${deployUsername}</username>
+					<password>${deployPassword}</password>
 					<update>true</update>
-					<path>/xty_fin</path>
+					<path>${deployPath}</path>
 				</configuration>
 			</plugin>
 			<plugin>

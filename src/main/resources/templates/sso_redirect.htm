@@ -1,0 +1,20 @@
+<h5 id="sso-label"></h5>
+<script type="text/javascript">
+    const targetUrl = "${targetUrl!}";
+    const redirectUrl = "${redirectUrl!}";
+    const appId = "${appId!}";
+    const ssoType = "${ssoType!}";
+
+    if (ssoType == 'feishu_sso') {
+        document.getElementById('sso-label').innerHTML = '飞书 sso 登录中，请稍等';
+        window.location.href='https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=' + encodeURIComponent(redirectUrl) + '&app_id=' + appId + '&state=22';
+    }
+    else if (ssoType == 'coremail_sso') {
+        document.getElementById('sso-label').innerHTML = 'core mail sso 登录中，请稍等';
+        setTimeout(function () {
+            window.open(targetUrl);
+            document.getElementById('sso-label').innerHTML = 'core mail 已在新的浏览器窗口打开';
+        }, 1000);
+    }
+
+</script>

@@ -4,25 +4,31 @@
   "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
 
 <generatorConfiguration >
+
+    <!--location="D:\\var\\repository\\mysql\\mysql-connector-java\\5.1.34\\mysql-connector-java-5.1.34.jar" />-->
 <classPathEntry
-location="D:\\var\\repository\\mysql\\mysql-connector-java\\5.1.34\\mysql-connector-java-5.1.34.jar" />
+    location="/Users/wangxiaoyu/mysql-connector-java-5.1.45.jar" />
   <context id="context1" >
-    <jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://127.0.0.1:3306/coremailbridge" userId="root" password="111111" />
+    <jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://10.147.17.90:3306/coremailbridge" userId="root" password="111111" />
     <javaModelGenerator targetPackage="com.hdsoft.coremailbridge.model" targetProject="src/main/java" />
     <sqlMapGenerator targetPackage="com.hdsoft.coremailbridge.persistence" targetProject="src/main/resources" />
     <javaClientGenerator targetPackage="com.hdsoft.coremailbridge.persistence" targetProject="src/main/java" type="XMLMAPPER" />
 
-    <table schema="" tableName="coremailbridge_user" domainObjectName="User">
-    	<generatedKey column="id" sqlStatement="MySql" identity="true"/>
-    </table>
-    <table schema="" tableName="coremailbridge_role" domainObjectName="Role">
-    	<generatedKey column="id" sqlStatement="MySql" identity="true"/>
-    </table>
-    <table schema="" tableName="coremailbridge_user_role" domainObjectName="UserRole">
-    	<generatedKey column="id" sqlStatement="MySql" identity="true"/>
-    </table>
-    <table schema="" tableName="coremailbridge_matcher" domainObjectName="Matcher">
-    	<generatedKey column="id" sqlStatement="MySql" identity="true"/>
-    </table>
+        <table schema="" tableName="coremailbridge_user" domainObjectName="User">
+            <generatedKey column="id" sqlStatement="MySql" identity="true"/>
+        </table>
+        <table schema="" tableName="coremailbridge_role" domainObjectName="Role">
+            <generatedKey column="id" sqlStatement="MySql" identity="true"/>
+        </table>
+        <table schema="" tableName="coremailbridge_user_role" domainObjectName="UserRole">
+            <generatedKey column="id" sqlStatement="MySql" identity="true"/>
+        </table>
+        <table schema="" tableName="coremailbridge_matcher" domainObjectName="Matcher">
+            <generatedKey column="id" sqlStatement="MySql" identity="true"/>
+        </table>
+
+        <table schema="" tableName="coremailbridge_mail" domainObjectName="Mail">
+          <generatedKey column="id" sqlStatement="MySql" identity="true"/>
+        </table>
   </context>
 </generatorConfiguration>

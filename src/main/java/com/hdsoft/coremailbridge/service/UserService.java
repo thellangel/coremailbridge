@@ -22,4 +22,5 @@ public interface UserService {
 	 */
 	List<String> getRoleNames(Long userId);
 
+    List<User> listUsers();
 }
