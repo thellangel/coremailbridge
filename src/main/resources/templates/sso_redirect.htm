@@ -4,6 +4,7 @@
     const redirectUrl = "${redirectUrl!}";
     const appId = "${appId!}";
     const ssoType = "${ssoType!}";
+    const fromMsg = "${fromMsg!}";
 
     if (ssoType == 'feishu_sso') {
         document.getElementById('sso-label').innerHTML = '飞书 sso 登录中，请稍等';
@@ -11,10 +12,16 @@
     }
     else if (ssoType == 'coremail_sso') {
         document.getElementById('sso-label').innerHTML = 'core mail sso 登录中，请稍等';
-        setTimeout(function () {
+        if (fromMsg && fromMsg == "T") {
+            window.location.href=targetUrl;
+        }
+        else {
             window.open(targetUrl);
-            document.getElementById('sso-label').innerHTML = 'core mail 已在新的浏览器窗口打开';
-        }, 1000);
+            document.getElementById('sso-label').innerHTML = '北汽集团邮件系统已在新的浏览器窗口打开';
+            setTimeout(function () {
+                window.close();
+            }, 1000);
+        }
     }
 
 </script>

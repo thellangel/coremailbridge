@@ -50,7 +50,7 @@ public class CoreMailService {
                     mainURL = webname + "/coremail/xphone/main.jsp?sid=" + sid;
                 }
                 else {
-                    mainURL = webname + "/coremail/main.jsp?sid=" + sid;
+                    mainURL = webname + "/coremail/main.jsp?sid=" + sid + "#mail.list";
                 }
             }
             else {
@@ -58,7 +58,7 @@ public class CoreMailService {
                     mainURL = coremailUrl + "/coremail/xphone/main.jsp?sid=" + sid;
                 }
                 else {
-                    mainURL = coremailUrl + "/coremail/main.jsp?sid=" + sid;
+                    mainURL = coremailUrl + "/coremail/main.jsp?sid=" + sid+ "#mail.list";
                 }
             }
 

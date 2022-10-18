@@ -51,7 +51,7 @@ public class MainController {
     private boolean coreMailDebug;
 
     @RequestMapping(value = { "/mainPage" }, method = RequestMethod.GET)
-    public String welcomePage(Model model, HttpSession redisSession, @RequestHeader(value="User-Agent", defaultValue="") String userAgent) {
+    public String welcomePage(Model model, HttpSession redisSession, @RequestHeader(value="User-Agent", defaultValue="") String userAgent, @RequestParam(name = "fromMsg", required = false, defaultValue = "F") String fromMsg) {
         try {
             logger.info("project main page invoke, serverDomain : {}", serverDomain);
             SessionUser sessionUser = (SessionUser) redisSession.getAttribute("current_user");
@@ -62,6 +62,7 @@ public class MainController {
                 model.addAttribute("redirectUrl", redirectUrl);
                 model.addAttribute("ssoType", "feishu_sso");
                 model.addAttribute("appId", appId);
+                model.addAttribute("fromMsg", fromMsg);
                 logger.info("redirect to feishu sso, appId : {}, redirectUrl : {}", appId, redirectUrl);
                 return "sso_redirect";
             }
@@ -72,6 +73,7 @@ public class MainController {
                 String targetUrl = coreMailService.userLogin(sessionUser.getEmail(), "style=1", isMobileAgent(userAgent));
                 model.addAttribute("targetUrl", targetUrl);
                 model.addAttribute("ssoType", "coremail_sso");
+                model.addAttribute("fromMsg", fromMsg);
                 logger.info("redirect to coremail sso, appId : {}, redirectUrl : {}", targetUrl);
                 return "sso_redirect";
             }
@@ -127,6 +129,7 @@ public class MainController {
 
                 model.addAttribute("targetUrl", targetUrl);
                 model.addAttribute("ssoType", "coremail_sso");
+                model.addAttribute("fromMsg", "F");
                 return "sso_redirect";
             }
             else {
