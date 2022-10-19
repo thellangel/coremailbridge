@@ -8,7 +8,7 @@
 
     if (ssoType == 'feishu_sso') {
         document.getElementById('sso-label').innerHTML = '飞书 sso 登录中，请稍等';
-        window.location.href='https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=' + encodeURIComponent(redirectUrl) + '&app_id=' + appId + '&state=22';
+        window.location.href='https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=' + encodeURIComponent(redirectUrl) + '&app_id=' + appId + '&state=' + fromMsg;
     }
     else if (ssoType == 'coremail_sso') {
         document.getElementById('sso-label').innerHTML = 'core mail sso 登录中，请稍等';

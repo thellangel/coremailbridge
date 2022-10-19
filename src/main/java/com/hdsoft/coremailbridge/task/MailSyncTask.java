@@ -48,6 +48,9 @@ public class MailSyncTask {
     @Value(value = "${handian.server.basepath}")
     private String serverDomain;
 
+    @Value(value = "${spring.jmx.default-domain}")
+    private String jmxDomain;
+
     @Value(value = "${coremail.debug}")
     private boolean coreMailDebug;
 
@@ -99,7 +102,9 @@ public class MailSyncTask {
                                 copyTemplate = copyTemplate.replaceAll("##subject##", replaceTemplate(mailInfo.getSubject()));
                                 copyTemplate = copyTemplate.replaceAll("##from##", replaceTemplate(mailInfo.getFrom()));
                                 copyTemplate = copyTemplate.replaceAll("##date##", replaceTemplate(mailInfo.getDate()));
-                                copyTemplate = copyTemplate.replaceAll("##detail_url##", serverDomain + "/mainPage?fromMsg=T");
+                                String appLink = "https://applink.feishu.cn/client/web_app/open?appId=" + appId + "&path=" + jmxDomain + "/mainPage?mid=" + mailInfo.getMid() + "&mode=window";
+//                                String appLink = serverDomain + "/mainPage?fromMsg=T";
+                                copyTemplate = copyTemplate.replaceAll("##detail_url##", appLink);
                                 logger.info("copyTemplate : {}", copyTemplate);
                                 FeiShuMessageRespData feiShuMessageRespData = feiShuService.sendMessages(tokenResp.getTenant_access_token(), copyTemplate, user.getFsUnionId());
                                 if (feiShuMessageRespData != null) {

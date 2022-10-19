@@ -50,6 +50,28 @@ public class MainController {
     @Value(value = "${coremail.debug}")
     private boolean coreMailDebug;
 
+    @RequestMapping(value = { "/mailDetail" }, method = RequestMethod.GET)
+    public String mailDetail(Model model, HttpSession redisSession, @RequestHeader(value="User-Agent", defaultValue="") String userAgent, @RequestParam(name = "mid") String mid) {
+        logger.info("mail detail page invoke, mid : {}", mid);
+        try {
+            SessionUser sessionUser = (SessionUser) redisSession.getAttribute("current_user");
+            CoreMailService coreMailService = new CoreMailService(wsdlUrl);
+            // coremail的单点地址
+            String targetUrl = coreMailService.userLogin(sessionUser.getEmail(), "style=1", isMobileAgent(userAgent));
+            model.addAttribute("targetUrl", targetUrl);
+            model.addAttribute("ssoType", "coremail_sso");
+            model.addAttribute("fromMsg", "T");
+            logger.info("redirect to coremail sso, appId : {}, redirectUrl : {}", targetUrl);
+            return "sso_redirect";
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            logger.error(e.getMessage(), e);
+        }
+
+        return "errorPage";
+    }
+
     @RequestMapping(value = { "/mainPage" }, method = RequestMethod.GET)
     public String welcomePage(Model model, HttpSession redisSession, @RequestHeader(value="User-Agent", defaultValue="") String userAgent, @RequestParam(name = "fromMsg", required = false, defaultValue = "F") String fromMsg) {
         try {
@@ -129,7 +151,7 @@ public class MainController {
 
                 model.addAttribute("targetUrl", targetUrl);
                 model.addAttribute("ssoType", "coremail_sso");
-                model.addAttribute("fromMsg", "F");
+                model.addAttribute("fromMsg", state);
                 return "sso_redirect";
             }
             else {
