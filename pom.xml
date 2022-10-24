@@ -174,11 +174,11 @@
 		    <artifactId>fastjson</artifactId>
 		    <version>1.2.6</version>
 		</dependency>
-		<dependency>
-	     <groupId>com.dingtalk.api</groupId>
-	     <artifactId>top-api-sdk-dev</artifactId>
-	     <version>ding-open-mc-SNAPSHOT</version>
-	   </dependency>
+<!--		<dependency>-->
+<!--	     <groupId>com.dingtalk.api</groupId>-->
+<!--	     <artifactId>top-api-sdk-dev</artifactId>-->
+<!--	     <version>ding-open-mc-SNAPSHOT</version>-->
+<!--	   </dependency>-->
 	   <dependency>
 		    <groupId>com.alipay.sdk</groupId>
 		    <artifactId>alipay-easysdk</artifactId>
