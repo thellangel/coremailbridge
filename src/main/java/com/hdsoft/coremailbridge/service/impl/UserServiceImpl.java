@@ -50,6 +50,17 @@ public class UserServiceImpl implements UserService {
 		return userMapper.selectByExample(example);
 	}
 
+	@Transactional
+	@Override
+	public void saveUser(User user) {
+		if (user.getId() != null) {
+			userMapper.insert(user);
+		}
+		else {
+			userMapper.updateByPrimaryKey(user);
+		}
+	}
+
 
 	/* (non-Javadoc)
 	 * @see com.hdsoft.service.UserService#findUserAccount(java.lang.String)
