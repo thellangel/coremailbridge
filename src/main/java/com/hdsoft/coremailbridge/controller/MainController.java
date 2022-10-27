@@ -20,10 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 
@@ -50,21 +47,39 @@ public class MainController {
     @Value(value = "${coremail.debug}")
     private boolean coreMailDebug;
 
-    @RequestMapping(value = { "/mailDetail" }, method = RequestMethod.GET)
-    public String mailDetail(Model model, HttpSession redisSession, @RequestHeader(value="User-Agent", defaultValue="") String userAgent, @RequestParam(name = "mid") String mid) {
-        logger.info("mail detail page invoke, mid : {}", mid);
+    @RequestMapping(value = { "/mailDetail/{mid}" }, method = RequestMethod.GET)
+    public String mailDetail(Model model, HttpSession redisSession, @RequestHeader(value="User-Agent", defaultValue="") String userAgent, @PathVariable(name = "mid") String mid) {
+        logger.info("mail detail page invoke, mid : {}, userAgent : {}", mid, userAgent);
         try {
+            logger.info("project main page invoke, serverDomain : {}, userAgent : {}", serverDomain, userAgent);
+
+            boolean mobileAgent = isMobileAgent(userAgent);
             SessionUser sessionUser = (SessionUser) redisSession.getAttribute("current_user");
-            CoreMailService coreMailService = new CoreMailService(wsdlUrl);
-            // coremail的单点地址
-            String targetUrl = coreMailService.userLogin(sessionUser.getEmail(), "style=1", isMobileAgent(userAgent));
-            model.addAttribute("targetUrl", targetUrl);
-            model.addAttribute("ssoType", "coremail_sso");
-            model.addAttribute("fromMsg", "T");
-            logger.info("redirect to coremail sso, appId : {}, redirectUrl : {}", targetUrl);
-            return "sso_redirect";
-        }
-        catch (Exception e) {
+            // 未登录，跳转至SSO登录
+            if (sessionUser == null) {
+                logger.info("session is empty, redirect to feishu sso page");
+                String redirectUrl = serverDomain + "/redirect";
+                model.addAttribute("redirectUrl", redirectUrl);
+                model.addAttribute("ssoType", "feishu_sso");
+                model.addAttribute("appId", appId);
+                model.addAttribute("fromMsg", "T");
+                model.addAttribute("mobile", mobileAgent ? "T": "F");
+                logger.info("redirect to feishu sso, appId : {}, redirectUrl : {}", appId, redirectUrl);
+                return "sso_redirect";
+            }
+            // 直接跳转coremail SSO
+            else {
+                CoreMailService coreMailService = new CoreMailService(wsdlUrl);
+                // coremail的单点地址
+                String targetUrl = coreMailService.userLogin(sessionUser.getEmail(), "style=1", isMobileAgent(userAgent));
+                model.addAttribute("targetUrl", targetUrl);
+                model.addAttribute("ssoType", "coremail_sso");
+                model.addAttribute("fromMsg", "T");
+                model.addAttribute("mobile", mobileAgent ? "T": "F");
+                logger.info("redirect to coremail sso, appId : {}, redirectUrl : {}", targetUrl);
+                return "sso_redirect";
+            }
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             logger.error(e.getMessage(), e);
         }
@@ -75,7 +90,9 @@ public class MainController {
     @RequestMapping(value = { "/mainPage" }, method = RequestMethod.GET)
     public String welcomePage(Model model, HttpSession redisSession, @RequestHeader(value="User-Agent", defaultValue="") String userAgent, @RequestParam(name = "fromMsg", required = false, defaultValue = "F") String fromMsg) {
         try {
-            logger.info("project main page invoke, serverDomain : {}", serverDomain);
+            logger.info("project main page invoke, serverDomain : {}, userAgent : {}", serverDomain, userAgent);
+
+            boolean mobileAgent = isMobileAgent(userAgent);
             SessionUser sessionUser = (SessionUser) redisSession.getAttribute("current_user");
             // 未登录，跳转至SSO登录
             if (sessionUser == null) {
@@ -85,6 +102,7 @@ public class MainController {
                 model.addAttribute("ssoType", "feishu_sso");
                 model.addAttribute("appId", appId);
                 model.addAttribute("fromMsg", fromMsg);
+                model.addAttribute("mobile", mobileAgent ? "T": "F");
                 logger.info("redirect to feishu sso, appId : {}, redirectUrl : {}", appId, redirectUrl);
                 return "sso_redirect";
             }
@@ -96,6 +114,7 @@ public class MainController {
                 model.addAttribute("targetUrl", targetUrl);
                 model.addAttribute("ssoType", "coremail_sso");
                 model.addAttribute("fromMsg", fromMsg);
+                model.addAttribute("mobile", mobileAgent ? "T": "F");
                 logger.info("redirect to coremail sso, appId : {}, redirectUrl : {}", targetUrl);
                 return "sso_redirect";
             }
@@ -120,6 +139,8 @@ public class MainController {
                                  @RequestParam(name = "state", required = false) String state) {
         try {
             logger.info("feishu sso redirect page invoke, code : {}, state : {}", code , state);
+
+            boolean mobileAgent = isMobileAgent(userAgent);
             TokenResp tokenResp = feiShuService.getInternalTenantAccessToken(appId, appSecret);
             // 获取飞书登录用户
             FeishuGetLoginUserData feiShuLoginUserData = feiShuService.getLoginUserInfo(code, tokenResp.getTenant_access_token());
@@ -144,14 +165,18 @@ public class MainController {
                 sessionUser.setEmail(email);
                 sessionUser.setMobile(mobile);
                 redisSession.setAttribute("current_user", sessionUser);
-
+                logger.info("login user email : {}", email);
+                logger.info("login user mobile : {}", mobile);
                 CoreMailService coreMailService = new CoreMailService(wsdlUrl);
                 // coremail的单点地址
-                String targetUrl = coreMailService.userLogin(email, "style=1", isMobileAgent(userAgent));
+                String targetUrl = coreMailService.userLogin(email, "style=1", mobileAgent);
 
                 model.addAttribute("targetUrl", targetUrl);
                 model.addAttribute("ssoType", "coremail_sso");
                 model.addAttribute("fromMsg", state);
+
+                model.addAttribute("mobile", mobileAgent ? "T": "F");
+                logger.info("coremail sso url : {}", targetUrl);
                 return "sso_redirect";
             }
             else {

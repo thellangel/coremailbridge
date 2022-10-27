@@ -5,6 +5,7 @@
     const appId = "${appId!}";
     const ssoType = "${ssoType!}";
     const fromMsg = "${fromMsg!}";
+    const mobile = "${mobile!}";
 
     if (ssoType == 'feishu_sso') {
         document.getElementById('sso-label').innerHTML = '飞书 sso 登录中，请稍等';
@@ -13,14 +14,28 @@
     else if (ssoType == 'coremail_sso') {
         document.getElementById('sso-label').innerHTML = 'core mail sso 登录中，请稍等';
         if (fromMsg && fromMsg == "T") {
-            window.location.href=targetUrl;
+            if (mobile && mobile == 'T') {
+                window.location.href=targetUrl;
+            }
+            else {
+                window.open(targetUrl);
+                document.getElementById('sso-label').innerHTML = '北汽集团邮件系统已在新的浏览器窗口打开';
+                setTimeout(function () {
+                    window.close();
+                }, 1000);
+            }
         }
         else {
-            window.open(targetUrl);
-            document.getElementById('sso-label').innerHTML = '北汽集团邮件系统已在新的浏览器窗口打开';
-            setTimeout(function () {
-                window.close();
-            }, 1000);
+            if (mobile && mobile == 'T') {
+                window.location.href=targetUrl;
+            }
+            else {
+                window.open(targetUrl);
+                document.getElementById('sso-label').innerHTML = '北汽集团邮件系统已在新的浏览器窗口打开';
+                setTimeout(function () {
+                    window.close();
+                }, 1000);
+            }
         }
     }
 

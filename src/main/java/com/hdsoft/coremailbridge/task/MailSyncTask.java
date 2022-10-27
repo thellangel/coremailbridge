@@ -102,7 +102,7 @@ public class MailSyncTask {
                                 copyTemplate = copyTemplate.replaceAll("##subject##", replaceTemplate(mailInfo.getSubject()));
                                 copyTemplate = copyTemplate.replaceAll("##from##", replaceTemplate(mailInfo.getFrom()));
                                 copyTemplate = copyTemplate.replaceAll("##date##", replaceTemplate(mailInfo.getDate()));
-                                String appLink = "https://applink.feishu.cn/client/web_app/open?appId=" + appId + "&path=" + jmxDomain + "/mainPage?mid=" + mailInfo.getMid() + "&mode=window";
+                                String appLink = "https://applink.feishu.cn/client/web_app/open?appId=" + appId + "&path=" + jmxDomain + "/mailDetail/" + mailInfo.getMid() + "&mode=window";
 //                                String appLink = serverDomain + "/mainPage?fromMsg=T";
                                 copyTemplate = copyTemplate.replaceAll("##detail_url##", appLink);
                                 logger.info("copyTemplate : {}", copyTemplate);
@@ -126,7 +126,7 @@ public class MailSyncTask {
         }
     }
 
-    private String replaceTemplate(String value) throws Exception{
+    private String replaceTemplate(String value) throws Exception {
         Pattern pattern = Pattern.compile("\n|\t|\r");
         value = pattern.matcher(value).replaceAll("");
 
