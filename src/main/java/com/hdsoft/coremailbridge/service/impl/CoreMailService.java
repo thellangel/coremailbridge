@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.hdsoft.coremailbridge.dto.MailInfo;
 import com.hdsoft.coremailbridge.wsdl.API;
 import com.hdsoft.coremailbridge.wsdl.ReturnInfo;
+import freemarker.template.utility.StringUtil;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -19,10 +21,14 @@ import java.util.List;
 
 public class CoreMailService {
     API api;
+
     boolean useWebName = false;
 
-    private String coremailUrl = "http://116.198.25.145:9900";
-    private String namespaceUrl = "http://116.198.25.145:9900/apiws";
+//    private String coremailUrl = "http://116.198.25.145:9900";
+//    private String namespaceUrl = "http://116.198.25.145:9900/apiws";
+
+    private String coremailUrl = "https://mail.baicgroup.com.cn";
+
 
     public CoreMailService(String apiWsdlUrl) throws Exception {
         this.api = javax.xml.ws.Service.create(
@@ -86,7 +92,12 @@ public class CoreMailService {
     }
 
     public List<MailInfo> parseMailFromStr(String mailInfo) throws Exception {
+
         List<MailInfo> mailInfoList = new ArrayList<>();
+        if (StringUtils.isEmpty(mailInfo)) {
+            return mailInfoList;
+        }
+
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         InputSource is = new InputSource();

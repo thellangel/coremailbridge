@@ -268,4 +268,20 @@ public class FeiShuServiceImpl implements FeiShuService {
         logger.info("FeiShu find department user, responseBody : {}", new Gson().toJson(resp.getBody()));
         return resp.getBody().getData();
     }
+
+    @Override
+    public JsTicket getJsTicket(String tenantAccessToken) {
+
+        String targetUrl = "https://open.feishu.cn/open-apis/jssdk/ticket/get";
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + tenantAccessToken);
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+        Map<String, Object> reqMap = new HashMap<String, Object>();
+        HttpEntity<Object> entity = new HttpEntity<Object>(reqMap,headers);
+
+        ResponseEntity<JsTicketResp> resp = restTemplate.exchange(targetUrl, HttpMethod.POST, entity, JsTicketResp.class);
+        logger.info("FeiShu get js ticket, responseBody : {}", new Gson().toJson(resp.getBody()));
+        return resp.getBody().getData();
+    }
 }

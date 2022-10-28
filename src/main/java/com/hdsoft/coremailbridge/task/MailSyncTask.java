@@ -58,10 +58,13 @@ public class MailSyncTask {
     public void execute() {
         logger.info("mail sync task start execute");
         try {
-//            if (coreMailDebug) {
-//                logger.info("dev env break mail sync task");
-//                return;
-//            }
+            if (coreMailDebug) {
+                logger.info("dev env break mail sync task");
+                jmxDomain = "coremaildev/";
+            }
+            else {
+                jmxDomain = "";
+            }
             String template = "{\"elements\":[{\"tag\":\"markdown\",\"content\":\"##subject##\\n\\n发件人 :  ##from##\\n时间 : ##date##\",\"href\":{}},{\"tag\":\"action\",\"actions\":[{\"tag\":\"button\",\"text\":{\"tag\":\"plain_text\",\"content\":\"查看详情\"},\"type\":\"primary\",\"url\":\"##detail_url##\"}]}],\"header\":{\"template\":\"blue\",\"title\":{\"content\":\"您有一封新邮件\",\"tag\":\"plain_text\"}}}";
 
             List<User> userList = userService.listUsers();
@@ -102,7 +105,8 @@ public class MailSyncTask {
                                 copyTemplate = copyTemplate.replaceAll("##subject##", replaceTemplate(mailInfo.getSubject()));
                                 copyTemplate = copyTemplate.replaceAll("##from##", replaceTemplate(mailInfo.getFrom()));
                                 copyTemplate = copyTemplate.replaceAll("##date##", replaceTemplate(mailInfo.getDate()));
-                                String appLink = "https://applink.feishu.cn/client/web_app/open?appId=" + appId + "&path=" + jmxDomain + "/mailDetail/" + mailInfo.getMid() + "&mode=window";
+                                // &mode=window
+                                String appLink = "https://applink.feishu.cn/client/web_app/open?appId=" + appId + "&path=" + jmxDomain + "mailDetail/" + mailInfo.getMid();
 //                                String appLink = serverDomain + "/mainPage?fromMsg=T";
                                 copyTemplate = copyTemplate.replaceAll("##detail_url##", appLink);
                                 logger.info("copyTemplate : {}", copyTemplate);

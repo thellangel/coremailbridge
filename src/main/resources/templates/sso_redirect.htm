@@ -1,3 +1,12 @@
+<script src="${basePath}/jquery-3.1.1.min.js"></script>
+<script
+        type = "text/javascript"
+        src = "https://lf1-cdn-tos.bytegoofy.com/goofy/lark/op/h5-js-sdk-1.5.18.js"
+></script>
+<!--<script src="https://unpkg.com/vconsole/dist/vconsole.min.js"></script>-->
+<!--<script>-->
+<!--    var vConsole = new window.VConsole();-->
+<!--</script>-->
 <h5 id="sso-label"></h5>
 <script type="text/javascript">
     const targetUrl = "${targetUrl!}";
@@ -7,36 +16,119 @@
     const fromMsg = "${fromMsg!}";
     const mobile = "${mobile!}";
 
-    if (ssoType == 'feishu_sso') {
-        document.getElementById('sso-label').innerHTML = '飞书 sso 登录中，请稍等';
-        window.location.href='https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=' + encodeURIComponent(redirectUrl) + '&app_id=' + appId + '&state=' + fromMsg;
-    }
-    else if (ssoType == 'coremail_sso') {
-        document.getElementById('sso-label').innerHTML = 'core mail sso 登录中，请稍等';
-        if (fromMsg && fromMsg == "T") {
-            if (mobile && mobile == 'T') {
-                window.location.href=targetUrl;
-            }
-            else {
-                window.open(targetUrl);
-                document.getElementById('sso-label').innerHTML = '北汽集团邮件系统已在新的浏览器窗口打开';
-                setTimeout(function () {
-                    window.close();
-                }, 1000);
-            }
+    const _timestamp = "${timestamp!}";
+    const _nonceStr = "${nonceStr!}";
+    const _signature = "${signature!}";
+
+    function apiAuth() {
+        if (!window.h5sdk) {
+            console.log("invalid h5sdk");
+            alert("please open in feishu");
+            return;
         }
-        else {
-            if (mobile && mobile == 'T') {
-                window.location.href=targetUrl;
-            }
-            else {
-                window.open(targetUrl);
-                document.getElementById('sso-label').innerHTML = '北汽集团邮件系统已在新的浏览器窗口打开';
-                setTimeout(function () {
-                    window.close();
-                }, 1000);
-            }
-        }
+
+        // window.h5sdk.error((err) => {
+        //     alert(JSON.stringify(err));
+        //     throw ('h5sdk error:', JSON.stringify(err));
+        // });
+
+        const url = encodeURIComponent(location.href.split("#")[0]);
+        const _appId = appId;
+        console.log('url', url);
+        console.log('appId', _appId);
+        console.log('timestamp', _timestamp);
+        console.log('nonceStr', _nonceStr);
+        console.log('signature', _signature);
+
+        // 调用config接口进行鉴权
+        window.h5sdk.config({
+            appId: _appId,
+            timestamp: parseInt(_timestamp),
+            nonceStr: _nonceStr,
+            signature: _signature,
+            jsApiList: [],
+            onSuccess: (res) => {
+                console.log('config success:', JSON.stringify(res));
+                //alert(JSON.stringify(res));
+            },
+            //鉴权失败回调
+            onFail: (err) => {
+                console.log('config failed: ', JSON.stringify(err));
+                //alert(JSON.stringify(err));
+            },
+        });
+
+        window.h5sdk.ready(() => {
+            tt.openSchema({
+                schema: targetUrl,
+                external: true,
+                success(res) {
+                    console.log(JSON.stringify(res));
+                    document.getElementById('sso-label').innerHTML = '北汽集团邮件系统已在新的浏览器窗口打开';
+                    // window.h5sdk.biz.navigation.close({
+                    //     onSuccess: function(result) {
+                    //         console.log(result);
+                    //     }
+                    // });
+                },
+                fail(res) {
+                    console.log('openSchema fail', JSON.stringify(res));
+                }
+            });
+        });
+
     }
+
+    $("document").ready(function () {
+        if (ssoType == 'feishu_sso') {
+            document.getElementById('sso-label').innerHTML = '飞书 sso 登录中，请稍等';
+            window.location.href='https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=' + encodeURIComponent(redirectUrl) + '&app_id=' + appId + '&state=' + fromMsg;
+        }
+        else if (ssoType == 'coremail_sso') {
+            apiAuth();
+            // document.getElementById('sso-label').innerHTML = 'core mail sso 登录中，请稍等';
+            // alert('open');
+            //
+            // tt.openSchema({
+            //     schema: targetUrl,
+            //     external: true,
+            //     success(res) {
+            //         console.log(JSON.stringify(res));
+            //     },
+            //     fail(res) {
+            //         console.log('openSchema fail', JSON.stringify(res));
+            //     }
+            // });
+            // window.open(targetUrl);
+            // document.getElementById('sso-label').innerHTML = '北汽集团邮件系统已在新的浏览器窗口打开';
+            // setTimeout(function () {
+            //     window.close();
+            // }, 1000);
+            // if (fromMsg && fromMsg == "T") {
+            //     if (mobile && mobile == 'T') {
+            //         window.location.href=targetUrl;
+            //     }
+            //     else {
+            //         window.open(targetUrl);
+            //         document.getElementById('sso-label').innerHTML = '北汽集团邮件系统已在新的浏览器窗口打开';
+            //         setTimeout(function () {
+            //             window.close();
+            //         }, 1000);
+            //     }
+            // }
+            // else {
+            //     if (mobile && mobile == 'T') {
+            //         window.location.href=targetUrl;
+            //     }
+            //     else {
+            //         window.open(targetUrl);
+            //         document.getElementById('sso-label').innerHTML = '北汽集团邮件系统已在新的浏览器窗口打开';
+            //         setTimeout(function () {
+            //             window.close();
+            //         }, 1000);
+            //     }
+            // }
+        }
+    });
 
 </script>

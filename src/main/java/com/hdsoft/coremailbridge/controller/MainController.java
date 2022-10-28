@@ -1,11 +1,16 @@
 package com.hdsoft.coremailbridge.controller;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.Date;
+import java.util.Formatter;
+import java.util.Random;
 
 import com.alipay.api.domain.DataEntry;
 import com.google.gson.Gson;
 import com.hdsoft.coremailbridge.dto.FeishuGetLoginUserData;
+import com.hdsoft.coremailbridge.dto.JsTicket;
 import com.hdsoft.coremailbridge.dto.SessionUser;
 import com.hdsoft.coremailbridge.dto.TokenResp;
 import com.hdsoft.coremailbridge.service.FeiShuService;
@@ -69,18 +74,31 @@ public class MainController {
             }
             // 直接跳转coremail SSO
             else {
-                CoreMailService coreMailService = new CoreMailService(wsdlUrl);
-                // coremail的单点地址
-                String targetUrl = coreMailService.userLogin(sessionUser.getEmail(), "style=1", isMobileAgent(userAgent));
-                model.addAttribute("targetUrl", targetUrl);
-                model.addAttribute("ssoType", "coremail_sso");
-                model.addAttribute("fromMsg", "T");
-                model.addAttribute("mobile", mobileAgent ? "T": "F");
-                logger.info("redirect to coremail sso, appId : {}, redirectUrl : {}", targetUrl);
-                return "sso_redirect";
+                return "redirect:mainPage";
+//                CoreMailService coreMailService = new CoreMailService(wsdlUrl);
+//                // coremail的单点地址
+//                String targetUrl = coreMailService.userLogin(sessionUser.getEmail(), "style=1", isMobileAgent(userAgent));
+//                model.addAttribute("targetUrl", targetUrl);
+//                model.addAttribute("ssoType", "coremail_sso");
+//                model.addAttribute("fromMsg", "T");
+//                model.addAttribute("mobile", mobileAgent ? "T": "F");
+//
+//
+//                String jsApiTicket = genJsTicket();
+//                String nonceStr = getRandomString(16);
+//                long timestamp = new Date().getTime() * 1000;
+//                String url = serverDomain + "/mainPage";
+//                String signature = sign(jsApiTicket, nonceStr, timestamp, url);
+//
+//                model.addAttribute("appId", appId);
+//                model.addAttribute("timestamp", String.valueOf(timestamp));
+//                model.addAttribute("nonceStr", nonceStr);
+//                model.addAttribute("signature", signature);
+//
+//                logger.info("redirect to coremail sso, appId : {}, redirectUrl : {}, signature : {}, nonceStr : {}, timestamp : {}", appId, targetUrl, signature, nonceStr, timestamp);
+//                return "sso_redirect";
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             logger.error(e.getMessage(), e);
         }
 
@@ -115,7 +133,19 @@ public class MainController {
                 model.addAttribute("ssoType", "coremail_sso");
                 model.addAttribute("fromMsg", fromMsg);
                 model.addAttribute("mobile", mobileAgent ? "T": "F");
-                logger.info("redirect to coremail sso, appId : {}, redirectUrl : {}", targetUrl);
+
+                String jsApiTicket = genJsTicket();
+                String nonceStr = "a" + getRandomString(15);
+                long timestamp = new Date().getTime() * 1000;
+                String url = serverDomain + "/mainPage";
+                String signature = sign(jsApiTicket, nonceStr, timestamp, url);
+
+                model.addAttribute("appId", appId);
+                model.addAttribute("timestamp", String.valueOf(timestamp));
+                model.addAttribute("nonceStr", nonceStr);
+                model.addAttribute("signature", signature);
+
+                logger.info("redirect to coremail sso, appId : {}, redirectUrl : {}, signature : {}, nonceStr : {}, timestamp : {}", appId, targetUrl, signature, nonceStr, timestamp);
                 return "sso_redirect";
             }
         } catch (Exception e) {
@@ -166,18 +196,30 @@ public class MainController {
                 sessionUser.setMobile(mobile);
                 redisSession.setAttribute("current_user", sessionUser);
                 logger.info("login user email : {}", email);
-                logger.info("login user mobile : {}", mobile);
-                CoreMailService coreMailService = new CoreMailService(wsdlUrl);
-                // coremail的单点地址
-                String targetUrl = coreMailService.userLogin(email, "style=1", mobileAgent);
-
-                model.addAttribute("targetUrl", targetUrl);
-                model.addAttribute("ssoType", "coremail_sso");
-                model.addAttribute("fromMsg", state);
-
-                model.addAttribute("mobile", mobileAgent ? "T": "F");
-                logger.info("coremail sso url : {}", targetUrl);
-                return "sso_redirect";
+//                logger.info("login user mobile : {}", mobile);
+//                CoreMailService coreMailService = new CoreMailService(wsdlUrl);
+//                // coremail的单点地址
+//                String targetUrl = coreMailService.userLogin(email, "style=1", mobileAgent);
+//
+//                model.addAttribute("targetUrl", targetUrl);
+//                model.addAttribute("ssoType", "coremail_sso");
+//                model.addAttribute("fromMsg", state);
+//
+//                model.addAttribute("mobile", mobileAgent ? "T": "F");
+//
+//                String jsApiTicket = genJsTicket();
+//                String nonceStr = "123456";
+//                long timestamp = new Date().getTime();
+//                String url = serverDomain + "/mainPage";
+//                String signature = sign(jsApiTicket, nonceStr, timestamp, url);
+//
+//                model.addAttribute("appId", appId);
+//                model.addAttribute("timestamp", timestamp);
+//                model.addAttribute("nonceStr", nonceStr);
+//                model.addAttribute("signature", signature);
+//
+//                logger.info("redirect to coremail sso, appId : {}, redirectUrl : {}, signature : {}, nonceStr : {}, timestamp : {}", appId, targetUrl, signature, nonceStr, timestamp);
+                return "redirect:mainPage";
             }
             else {
                 logger.error("get FeiShu login user info error.");
@@ -283,4 +325,64 @@ public class MainController {
         return redirectPage;
     }
 
+
+    private String genJsTicket() {
+        TokenResp tokenResp = feiShuService.getInternalTenantAccessToken(appId, appSecret);
+        if (tokenResp != null) {
+            JsTicket jsTicket = feiShuService.getJsTicket(tokenResp.getTenant_access_token());
+            return jsTicket.getTicket();
+        }
+        return null;
+    }
+
+    public String sign(String ticket, String noncestr, long timestamp, String url) throws Exception {
+        String plain = "jsapi_ticket=" + ticket + "&noncestr=" + noncestr + "&timestamp=" + String.valueOf(timestamp) + "&url=" + url;
+        logger.info("plain : {}", plain);
+        try {
+            MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+            sha1.reset();
+            sha1.update(plain.getBytes("utf-8"));
+            return bytesToHex(sha1.digest());
+
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
+    }
+
+    //将bytes类型的数据转化为16进制类型
+    private static String bytesToHex(byte[] hash) {
+        Formatter formatter = new Formatter();
+        for (byte b : hash) {
+            formatter.format("%02x", b);
+        }
+
+        String result = formatter.toString();
+        formatter.close();
+        return result;
+    }
+
+    public static String getRandomString(int length){
+        String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random random=new Random();
+        StringBuffer sb=new StringBuffer();
+        for(int i=0;i<length;i++){
+            int number=random.nextInt(62);
+            sb.append(str.charAt(number));
+        }
+        return sb.toString();
+    }
+
+//    public static void main(String[] args) {
+//        String verifyStr = "jsapi_ticket=617bf955832a4d4d80d9d8d85917a427&noncestr=Y7a8KkqX041bsSwT&timestamp=1510045655000&url=https://m.haiwainet.cn/ttc/3541093/2018/0509/content_31312407_1.html";
+//        // 2ee6a79c182eeec8d76e7474136edb6e617b8d58
+//        try {
+//            MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+//            sha1.reset();
+//            sha1.update(verifyStr.getBytes("utf-8"));
+//            System.out.println(bytesToHex(sha1.digest()));
+//
+//        } catch (Exception e) {
+//            System.out.println(e.getMessage());
+//        }
+//    }
 }

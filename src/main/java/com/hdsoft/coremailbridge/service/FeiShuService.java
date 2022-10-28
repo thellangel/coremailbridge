@@ -16,4 +16,6 @@ public interface FeiShuService {
     FeiShuDepatmentList getDepartmentList(String accessToken, String pageToken, String parentDepartmentId);
 
     FeiShuUserList findDepartmentUser(String accessToken, String departmentId);
+
+    JsTicket getJsTicket(String tenantAccessToken);
 }
