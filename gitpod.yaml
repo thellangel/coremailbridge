@@ -1,0 +1,614 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/version: 1.9.4
+    helm.sh/chart: fluent-bit-0.20.2
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: fluent-bit
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/version: 1.9.4
+    helm.sh/chart: fluent-bit-0.20.2
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: fluent-bit
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/version: 1.9.4
+    helm.sh/chart: fluent-bit-0.20.2
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: fluent-bit
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: fluent-bit
+subjects:
+- kind: ServiceAccount
+  name: fluent-bit
+  namespace: hdsoft
+---
+apiVersion: v1
+data:
+  custom_parsers.conf: |
+    [PARSER]
+        Name docker_no_time
+        Format json
+        Time_Keep Off
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+  fluent-bit.conf: |
+    [SERVICE]
+        Daemon Off
+        Flush 1
+        Log_Level info
+        Parsers_File parsers.conf
+        Parsers_File custom_parsers.conf
+        HTTP_Server On
+        HTTP_Listen 0.0.0.0
+        HTTP_Port 2020
+        Health_Check On
+
+    [INPUT]
+        Name tail
+        Path /var/log/containers/*.log
+        Parser docker
+        Tag <pod_name>.<container_name>
+        Tag_Regex (?<pod_name>[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*)_(?<namespace_name>[^_]+)_(?<container_name>.+)-
+        Skip_Long_Lines On
+
+    [FILTER]
+        Name stdout
+
+    [OUTPUT]
+        Name file
+        Match imagebuild*
+        Mkdir true
+        Path /gitpod/log-collector
+        Format plain
+
+    [OUTPUT]
+        Name file
+        Match installer*
+        Mkdir true
+        Path /gitpod/log-collector
+        Format plain
+
+    [OUTPUT]
+        Name file
+        Match migrations*
+        Mkdir true
+        Path /gitpod/log-collector
+        Format plain
+
+    # Workspaces
+    [OUTPUT]
+        Name file
+        Match ws*.workspace
+        Mkdir true
+        Path /gitpod/log-collector
+        Format plain
+kind: ConfigMap
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/version: 1.9.4
+    helm.sh/chart: fluent-bit-0.20.2
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: fluent-bit
+---
+apiVersion: v1
+data:
+  channelName: Stable
+  cursor: "26"
+  isAirgap: "false"
+  releaseNotes: |-
+    ## November 2022 hotfix release of the Gitpod Installer
+
+    Docker image: `eu.gcr.io/gitpod-core-dev/build/installer:release-2022.11.1.5`
+
+    Refer to the [self-hosted documentation](https://www.gitpod.io/docs/self-hosted/latest) to know more about how to setup Gitpod.
+
+
+    ## What's Changed
+    * [installer]: make the kots install overwrite the config if exists by @mrsimonemms in https://github.com/gitpod-io/gitpod/pull/15263
+    * [installer, gitpod-db] Introduce database.ssl.ca by @geropl in https://github.com/gitpod-io/gitpod/pull/15320
+
+
+    **Full Changelog**: https://github.com/gitpod-io/gitpod/compare/2022.11.0...2022.11.1
+  sequence: "0"
+  version: 2022.11.1
+kind: ConfigMap
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app: gitpod
+    component: gitpod-installer
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: gitpod-installation
+---
+apiVersion: v1
+data:
+  ADVANCED_MODE_ENABLED: "1"
+  CERT_MANAGER_ENABLED: "1"
+  COMPONENT_PROXY_SERVICE_TYPE: ""
+  CONFIG_PATCH: ""
+  CURSOR: "26"
+  CUSTOMIZATION_PATCH: ""
+  CUSTOMIZATION_PATCH_ENABLED: "false"
+  DB_CLOUDSQL_ENABLED: "0"
+  DB_CLOUDSQL_INSTANCE: ""
+  DB_CLOUDSQL_SERVICE_ACCOUNT_NAME: cloudsql
+  DB_EXTERNAL_CERTIFICATE_NAME: database
+  DB_INCLUSTER_ENABLED: "1"
+  DISTRIBUTION: k3s
+  DOMAIN: gitpod.handiansoft.net
+  GITPOD_INSTALLER_CONFIG: /tmp/gitpod-config.yaml
+  GITPOD_OBJECTS: /tmp/gitpod
+  HAS_LOCAL_REGISTRY: "false"
+  HTTP_PROXY_NAME: ""
+  IMAGE_PULL_SECRET_NAME: gitpod-registry
+  INSTALLER_TIMEOUT: 5m
+  LICENSE_NAME: gitpod-license
+  LOCAL_REGISTRY_ADDRESS: ""
+  LOCAL_REGISTRY_HOST: ""
+  NAMESPACE: hdsoft
+  OPEN_VSX_URL: ""
+  REGISTRY_DOCKER_CONFIG_ENABLED: "0"
+  REGISTRY_EXTERNAL_CERTIFICATE_NAME: container-registry
+  REGISTRY_INCLUSTER_ENABLED: "1"
+  REGISTRY_INCLUSTER_STORAGE: none
+  REGISTRY_INCLUSTER_STORAGE_S3_BUCKET_NAME: ""
+  REGISTRY_INCLUSTER_STORAGE_S3_CERTIFICATE_NAME: container-registry-s3-backend
+  REGISTRY_INCLUSTER_STORAGE_S3_ENDPOINT: s3.amazonaws.com
+  REGISTRY_INCLUSTER_STORAGE_S3_REGION: ""
+  REGISTRY_URL: ""
+  SSH_GATEWAY: "0"
+  SSH_GATEWAY_HOST_KEY_NAME: ssh-gateway-host-key
+  STORE_AZURE_CREDENTIALS_NAME: storage-azure
+  STORE_GCP_PROJECT: ""
+  STORE_GCP_SERVICE_ACCOUNT_NAME: storage-gcp
+  STORE_PROVIDER: incluster
+  STORE_REGION: ""
+  STORE_S3_BUCKET: ""
+  STORE_S3_CREDENTIALS_NAME: storage-s3
+  STORE_S3_ENDPOINT: s3.amazonaws.com
+  TLS_CUSTOM_CA_CRT_CREDENTIALS_NAME: ca-certificate
+  TLS_CUSTOM_CA_CRT_ENABLED: "false"
+  TLS_SELF_SIGNED_ENABLED: "0"
+  USER_MANAGEMENT_BLOCK_ENABLED: "0"
+  USER_MANAGEMENT_BLOCK_PASSLIST: ""
+kind: ConfigMap
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app: gitpod
+    component: gitpod-installer
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: gitpod-kots-config
+---
+apiVersion: v1
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJwcm94eS5yZXBsaWNhdGVkLmNvbSI6eyJhdXRoIjoiTWpjelYxcGxObnBJUldOV1NFZFBkVWxCZG1sMWVVZFlZbWR0T2pJM00xZGFaVFo2U0VWalZraEhUM1ZKUVhacGRYbEhXR0puYlE9PSJ9LCJyZWdpc3RyeS5yZXBsaWNhdGVkLmNvbSI6eyJhdXRoIjoiTWpjelYxcGxObnBJUldOV1NFZFBkVWxCZG1sMWVVZFlZbWR0T2pJM00xZGFaVFo2U0VWalZraEhUM1ZKUVhacGRYbEhXR0puYlE9PSJ9fX0=
+kind: Secret
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-9999"
+    kots.io/app-slug: gitpod
+  creationTimestamp: null
+  labels:
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: gitpod-registry
+  namespace: hdsoft
+type: kubernetes.io/dockerconfigjson
+---
+apiVersion: v1
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJwcm94eS5yZXBsaWNhdGVkLmNvbSI6eyJhdXRoIjoiTWpjelYxcGxObnBJUldOV1NFZFBkVWxCZG1sMWVVZFlZbWR0T2pJM00xZGFaVFo2U0VWalZraEhUM1ZKUVhacGRYbEhXR0puYlE9PSJ9LCJyZWdpc3RyeS5yZXBsaWNhdGVkLmNvbSI6eyJhdXRoIjoiTWpjelYxcGxObnBJUldOV1NFZFBkVWxCZG1sMWVVZFlZbWR0T2pJM00xZGFaVFo2U0VWalZraEhUM1ZKUVhacGRYbEhXR0puYlE9PSJ9fX0=
+kind: Secret
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-9999"
+    kots.io/app-slug: gitpod
+  creationTimestamp: null
+  labels:
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: kotsadm-replicated-registry
+  namespace: hdsoft
+type: kubernetes.io/dockerconfigjson
+---
+apiVersion: v1
+data:
+  license: eyJsaWNlbnNlRGF0YSI6ImV5SmhjR2xXWlhKemFXOXVJam9pYTI5MGN5NXBieTkyTVdKbGRHRXhJaXdpYTJsdVpDSTZJa3hwWTJWdWMyVWlMQ0p0WlhSaFpHRjBZU0k2ZXlKdVlXMWxJam9pWTI5dGJYVnVhWFI1SW4wc0luTndaV01pT25zaWJHbGpaVzV6WlVsRUlqb2lNamN6VjFwbE5ucElSV05XU0VkUGRVbEJkbWwxZVVkWVltZHRJaXdpYkdsalpXNXpaVlI1Y0dVaU9pSmpiMjF0ZFc1cGRIa2lMQ0pqZFhOMGIyMWxjazVoYldVaU9pSkRiMjF0ZFc1cGRIa2lMQ0poY0hCVGJIVm5Jam9pWjJsMGNHOWtJaXdpWTJoaGJtNWxiRWxFSWpvaU1qVTVXVmxDU1V4WVZHRXpNRk14VTI5c2FUbFpZMWRqVUZSaUlpd2lZMmhoYm01bGJFNWhiV1VpT2lKVGRHRmliR1VpTENKc2FXTmxibk5sVTJWeGRXVnVZMlVpT2pFeExDSmxibVJ3YjJsdWRDSTZJbWgwZEhCek9pOHZjbVZ3YkdsallYUmxaQzVoY0hBaUxDSmxiblJwZEd4bGJXVnVkSE1pT25zaVkzVnpkRzl0WlhKSlpDSTZleUowYVhSc1pTSTZJa04xYzNSdmJXVnlJRWxFSWl3aWRtRnNkV1VpT2lJaUxDSjJZV3gxWlZSNWNHVWlPaUpUZEhKcGJtY2lmU3dpWkc5dFlXbHVJanA3SW5ScGRHeGxJam9pUkc5dFlXbHVJaXdpZG1Gc2RXVWlPaUlpTENKMllXeDFaVlI1Y0dVaU9pSlRkSEpwYm1jaWZTd2laWGh3YVhKbGMxOWhkQ0k2ZXlKMGFYUnNaU0k2SWtWNGNHbHlZWFJwYjI0aUxDSmtaWE5qY21sd2RHbHZiaUk2SWt4cFkyVnVjMlVnUlhod2FYSmhkR2x2YmlJc0luWmhiSFZsSWpvaUlpd2lkbUZzZFdWVWVYQmxJam9pVTNSeWFXNW5JbjBzSW14bGRtVnNTV1FpT25zaWRHbDBiR1VpT2lKTWFXTmxibk5sSUd4bGRtVnNJaXdpZG1Gc2RXVWlPakVzSW5aaGJIVmxWSGx3WlNJNklrbHVkR1ZuWlhJaUxDSnBjMGhwWkdSbGJpSTZkSEoxWlgwc0luTmxZWFJ6SWpwN0luUnBkR3hsSWpvaVZYTmxjaUJ6WldGMGN5SXNJblpoYkhWbElqb3hNQ3dpZG1Gc2RXVlVlWEJsSWpvaVNXNTBaV2RsY2lKOWZTd2lhWE5IYVhSUGNITlRkWEJ3YjNKMFpXUWlPblJ5ZFdVc0ltbHpTV1JsYm5ScGRIbFRaWEoyYVdObFUzVndjRzl5ZEdWa0lqcDBjblZsTENKcGMxTnVZWEJ6YUc5MFUzVndjRzl5ZEdWa0lqcDBjblZsTENKcGMwNWxkMHR2ZEhOVmFVVnVZV0pzWldRaU9uUnlkV1VzSW1selUyVnRkbVZ5VW1WeGRXbHlaV1FpT25SeWRXVjlmUT09IiwiaW5uZXJTaWduYXR1cmUiOiJleUpzYVdObGJuTmxVMmxuYm1GMGRYSmxJam9pVFdWTVRUTXJhVEJNWVRsTllsZFRNbE5JV0VKRmNFbHdNek53TTNaWE9HaHNlUzlvUnpnckx6Um1WR1puTmxOWVdVdFdabGRxWldaUmRucHZaakZ5Y21kelZHeDFlbWhZZFV0WVVFTTBRVlZoY0RKQ1kyaDFLM0UzVFZKeFNWUklhM00wUjB3dlozSndWbnBuV1VaVGNIWnhWa1J5VEdGMmQyNVFiRXREZWxOR2JsbG1jak53YlZaMmFHUlpNa1ZSWjNCQmIycGtUR0ZKVkd4eFYwdFJSWEp0VVRSalYyOTRkSGhoYTI1bmRFcHJNR05QTkV4RmVrZFRPRmRsVjNsa1FWa3ZVV3R0VW5kVmRWQlRSbEpuTTBRMFpFdEpaMnhsV0dwdFUyaDZNeXMyUjFwNUswNXBhMGt3UjFoblUzRnZMMGt5UTNSTFFtNWlNM0JvUm1jeVdYQTRWRVZ6VmpKUlducHBOVlk1TDNOdlFWZGlUR1I2ZG1sNVJ5dG1NWGxISzJ0Tk9ITTJWVGh6YmpWa1QyZDBPRXhSU205WFduQTFWbmxvV0hsSVdqaDJhV2tyTlVsWVNXbGpSa0ZyV0ROek1HMW9jMkZSUFQwaUxDSndkV0pzYVdOTFpYa2lPaUl0TFMwdExVSkZSMGxPSUZCVlFreEpReUJMUlZrdExTMHRMVnh1VFVsSlFrbHFRVTVDWjJ0eGFHdHBSemwzTUVKQlVVVkdRVUZQUTBGUk9FRk5TVWxDUTJkTFEwRlJSVUZ2Tlc1Nk9WbEVTMU5SUm1Wd2IySmFWakE1ZDF4dVdFdGxOM1JzVEZWVlZXNVRaVGd3TUVkRFMxUkRWRnB6Ym05cWRVSmhlV3BwUzJSM1drUXpWVlJLY1RCRWFXOUJjbGhWYTJoRU5HdG1kRE50UkZRM1JseHVZa0Z5ZUZkRVZYUnJOMWR6VmpGbWJFaHZjR3RpV0ZwSWNFaHlUM2QyV0daVFFraGlPVkZCYVVrMGQxcERkbWxDWmpkT01IVmxUV2xvVURKa2EzQnNiVnh1Tm1aSUx6RlRiR3BrWlZWU01XVkpjbVZXTjJSRFFYQmlhVzV5Tms5VVNERmpVMDQxVm1OWmVITjJVamhVT1RnclVVbEhMMFpXYW1NM2EzTnJTbUp5TTF4dWQwSlRkR2hqVWxoS2JrdHRaa296ZVdWeGQyZGxOa0ZCUTJkblYxWlFURFJHYW5ab05DOVJNblJ4V2tkQ2NXeFBXWFY0THpSSVYzWlRVMlZZUzFoMmNseHVZVVJhY2tOblNYRk9NWEJSUlZrd2FtMHlaa3hIWkU5RFJXaEZkbFJ4WkU0MGRXOW5iRTAxY2lzeWRVbFliblZFYUVvdlEzWkxkR2RUUldaSU0zQmtkVnh1Y2xGSlJFRlJRVUpjYmkwdExTMHRSVTVFSUZCVlFreEpReUJMUlZrdExTMHRMVnh1SWl3aWEyVjVVMmxuYm1GMGRYSmxJam9pWlhsS2VtRlhaSFZaV0ZJeFkyMVZhVTlwU25OamJsRnlZMFpPTVZkdVFsSmhlbWg0VkdrNWRsTlVWa3RaTVd3MllVTTVURkZyZUd4TlEzUk5WVzFPVFZWdGRHOVViV3hRVjBaU1NWcFdiRWhrYkd4MVdrZGFRbHBIVm5wVE1GWkxVbXBqTlZkVWFFOWpiVFI0VGxVNVdXTnFWbUZpTURWSFZrVm9SbUZWT0hsYVZGWkZVMnhyZW1Fd2FEUlZha1l6VFVkR1QxRldhRXhVYldkNVRYcGplV0ZWYUV4YVJrNDFUMFpLYjAxdFZYZGtNblJwVWtSSmRsSnJNVEJPYldoNVkxZEtjbU5IVVhwaVIyUTJZVEprVFUxWVZqRk1NblIzVTBWSmQyRXdWak5rYTFsMlpIcFplV0ZZVmtwVFZFNHhUVVUxTldGSGNHbFNWM0JVWW01U2IySklaRkpWYkdod1pFVkdkR0pYTlVKa1ZXeENZbGM1V1ZOdFVrOVRWVEZvVkc1d1EwNUhVVE5pVmtZMlZsY3hjMk14YkVWU1NHaFhZMnM1VlUxck5IcGpibEpQVDBSa2FFOVdiRzlqVkVwclQxZGtNRlpHVmsxa2VtUldaREk1ZFZWV1RtaE5XRkozWlZSb1JGTlhjRVZXYms1SVlrUmtiVTFyVG5oaFNGSnpUREZaTldGVmREUk9SRUpTVjBaU2NVNXNTbWxVYlZwdlRrZHdNbUp1YUVkV2FsbDJZVVpTYm1WSGFGbFdSMDEyVWxWR1RGZHNXVFZSYlhRMlZWaG9lVlZJV2xOWlZsSkhZVzAxUlZsV2FHeGpNSFJ6VlZWR2VWVkdSVGxRVTBselNXMWtjMkl5U21oaVJYUnNaVlZzYTBscWIybFpiVkpzV2xSVk1rNVVXWGRaTWxwcFRrUk9hazlYU1hsUFIwcHRUMVJvYkZsWFRtaGFiVVV5VGtSWmFXWlJQVDBpZlE9PSJ9
+  type: cmVwbGljYXRlZA==
+kind: Secret
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app: gitpod
+    component: gitpod-installer
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: gitpod-license
+---
+apiVersion: v1
+data:
+  release: SDRzSUFBQUFBQUFDLytRN0RXL2JPSlovUmVDaG1KbXU1Zmd6c1hVNExEcHBNeTBtYlkwNDdXS3Z6aGtVOVNSeFE0a0NTYm5KNXZ6ZkR5VDFhY3RPMHUzTTRhNG9VSmhQNVB2aTQvc2k4NEJTbkFEeVVNaHlTSlhyVTRWNmlLWWhSOTREQ3FtUWFoMUF4dmc5Qk1oRHFJY1kzZ01Gd0VEVkEwa0V6UlRsS2ZMUWEzSHZpRHgxQ0U4eVBRbjFrRlJZNVJKNXFFS3k3U0VTWTZFMHlRUVVEckRDK25jWGF4c1EwcUllOUVlRC9taVA0bTlVWlR4d1dvdHdSajlYNnpaMlRRWnBBQ21oSUpIMzVjbTBCR1JjVXNYRlBmSlFyRlFtdlpNVHU2Z2ZVUlhuZnAveWt4aFk0aHFSSk9vaFNMSFB0SHFVeUdGN3MrMGh4c210RmpDQ0ZBUzJxaHNOUmlOM09IS0gwK3ZoMUp0T3ZjbHBmemFaVEVhajJXVDJuNXBsR29GVXlFTXl4cVBwcVRlZW5JV3pLZmFENlNpWUQvQjRmQllTR0lYejZmaDBHbUF5SFlabm1JekRBTU1jSnVQeDBCL0RmRDRlRC96UlpES2VqWVovcWhhTTJBcVNqR0dsYWFVNVl6MjB3U3pYbzRjbVJlOEI0VENrS1ZYM3lIdlk5aEJPVTY2dzNsNVpBRVNrMmIzcElad3JMZ2xtTkkzME9oOWl2S0ZjMkdra2w0b25Wem1EWW5hMUVTRm1Fbm9vd1hkWGtERktzRVRldUljU210YmpZUThwTENKUTU0dFBueFJsOUorR2hRVUlBcW5DRVNEdmJLcXA4Q1RCYVdBcEVKNkcxTEJpaVMrd2tDQzBzWDladkxwYXZybTZXYVdPNHpnZmNBSk93TWt0aUhYSzE0b21ZRDljY0pGZzVmeEQ4dFFDcm1rQzY5OEJNdWRqR0xaQTkwNjl6SUNLdFMvKzdyNUkzQmZCOVl1MzNvdjMzb3RsLzhYbEt0VjJlS2NFdnFCR0hWby9JV1dxWU83aTNlVjFtN25iM0FlUmdnSnBnZSt4SXJHQjlsOFdFQkFSckM5NTVId3NlTlZzV2tESjZ1K3pwWHZKbzRpbVVkL3FvcDdjK1BUbWpyQThBUFBOdUo4c1Y0YXZkeDhXbjY2YmJDbE1tUjB1c0lxZGt3MFdKNHhISjRTbkN0TVVoRHg1MldjOHNuT1NuT21kUzZHZldlSlc1VDJIQ0Zvb0RrYzdRaVhyWC9Od2ZVa1RxcHpwKzE4dGVIbEx0V1JwdEw2a0tVakQ2Q3JkWjAvZVN3VkpVT09PdVZRbDdxWDl1TDR3ZW5mV3k3OHZyOSs4ZjczKzlPSGQ5WDlvSmhpb3ZnU3hvYVRZMWl2QXdmcEM4R1I5alNrcjFjTnpWZXJuNDZmckhRNE83OWRiTHBVRDJuMVRJZ0VMRXJzSmxncUUvWHpKSTZtd2pFc3pLdmZwQ3BTNEwvUnhvYytOa2Z3eHdrMjV2NUZ3QlY4SUNPbWRrL0lBRHJLazQ0clZuRmJMOHMzVjUzZm5id3IyWG1OSWVGb2I1UVhMWmV3OFBEajl6OGIvOUVNRDJHNHJ1dXRMMkFCclRtRThzckJ5Vm5HeTlXYUNZNjFMOXZYeDcvaHNmY0Y2ZjliYjYrdkZlZ2xpMHpnWEJuWkpwWUxVR2ZUTnY4YUhCUmVxeVZjQ1NsQWlEYmhrN1MxZ3B1TDFlUXprMXRyTXRvY0NvNFFscU0rYzVRbTg1M21xck05UDlFOTltcENIeXZPRWVtVW8yR0NoeDl0ZTEwVHFuOWdUMVRoLzdhWFV0eE5hM3dYZzRHUEs3b3VJdUlzYUZEbEpNSWxwQ2k0TmFueWdTQUUyMEIwc04zc3lXdkcwSlZyTUR5amJrWExiSmViQkJaM1NiaDhUOXhES1BTblZmYWJSYUl0cFlHMEpiWVdVc2MreENFemMzSXVOdXpHT1lSL1k3NkFEZFNSd2lGTzhyakFVcXBVWk5zZkdtRWtxejhzWVpvY0x6aWpSeTg5WnJnL3RoYzRKVFZhekthUHFScnVvYXZBM3F1THJqQlhqT3lvVlRTT0w5RDNPYkpKb1F0RjVyYVJpcmhKWVczSnp2R091YlhBQk1lZlhST3d3WjB5TDlIRURRdEFBTExXSWNSOHpLNUhlaWxlTVlsa3Uxb0FQb0w1eWNWc3BqU1ltdmorZ0xHZXNVc0FyOWhYZnk5MzBoNGkrVFY1OHFuVFdZd2NuclJSSzRhalFyOEc4eUJsYkFoRlFpa1RUU0lEczNsRENzSlFmckRHZy9mMDEydEFldGlGTzhWTXg4ME5UVGFuYTFmWXQxVWtMZWwyZUdWVFlTa0dXMFJESVBXRlFEamVRZ3BRTHdYMmpHWjMxL1FhcWFkR29oekt1czNqekVXMU5vbXZkSnZKc1RkRkRMTWRMazYwWGRCb09ESG1qd1doZ2JiSzlnYW5kbjNJbkhuYTBvRThMRDJBSkRJZ3FzeitlUWJxTWFhajI1K3RZUVhKQjFiMVdDdHhwM1VnbE1EVTIxclVIQXJDQ3d0RnN0WmpCcTkwNUdROWVVeWx5VTRmOG1nZVJWYzZqQnpUQmQ1OVN2TUdVYVRqeTBIandBbGw4bDQzOXlIaXdiRE85QjYvVmMxQ0FVbDJab055Z2FodFhKbmdDS29aYzZxeTVVOUhDeDhUa3R3MlZXUFcvSXNUWWNEVVRjRUFmc3htYzBaUE44Q1EySWF2RGdJVE54OC8xK1RjblhJRGt1U0JsRGl1N2RGSmxBaDJhWUMyZDFrWlhlTi9DeWIxYm9CclBLMElzK2Njc28xcnhucWZVR3VLK0FoVklkU0Z3QXRialBEekwyZmk1dlBmNVhlVlNURFdsaktZVVo3cVd0S3pwQTU1bkFWYXdWTHJBaklwU2FuTTArTmMreTBTbmVtaFNsam9RRjFWT0Q4bmNMOWJ1enQwTDZqdTRPMUtpby9pNzVtOXZ0TnlTeEpEZ3NxSU1iWG1qQjl0bU9kYXVMeHZ3WXpXUVZBSFAxZmN0U1JiTlFxU3VFMWI1WURBbUdRL1dXZ2RtQkgwTHJQQTBQbFVMMTFjUXdaM3o4MSs3RUh6QjdqOEg3dnptNXk5dThldGxDZnJscnordlZ2MmpFMzU1K2N1NnhGdWxDVTNzLzdXKytVczlwWXZOL2w5K2NROFhVSStWTW5vdm16V0ZPU2grVGxsUUZtdTNBUldPUG5wTi9VZW1BYVMzd0NXYzJaRFFLcTR6aG1sNm9JclpvNWxLaFJrRDhlZVJUR2hVbk9QdlJQUGZuTDl4Y1d1MlR6NkpnNi95WmY5cnVlUjc4S0NkNlg3SzkxQTJjbEJpc0x0Wk4wWnpPRWFuOW4vbmE2eExLczNKdnpzQmQ0REUzRm1ocjVqcU5IT0YycE1sQThpYzA0R2VtZ0s2YWJacmtOUUJ4eVVhV3ZqZzByOTZ3OW9aM1hMVHhEdnVPUzNiVFE5VzhLNmQxSUZVOWhrbzlwTGU3cEtpUWxFRXM5ZFVHQXozSDhXNWpWUGJBK2lycUlod3BsUDBDaFBoU2NaVDBOR3ZBTHF0dmRuTlZKNi9YdnZ3QktjMHRNMU4xM1cxeFM1TmtQY2FiZHdUMjBsc0JwS3FuM2hTeEYxc0kzWC9IaWRzbGRaZFg4L1pERmVwem5nOVo5a0s2cXUwYkRoNzJuQzFjcHBFTmN6cXhyTjJIUU5MK2pLMnpEUm51clk1YW1maExPdlhEVFJkRlhRaDdwcG4vRTFLbmpSM1V3cTNRc1ArdkQ5Wm9VTXpFNXppQ0FMWHYvZWN0OENTVmZwdGFyWnhNOEhaVVExWHRkNlBxdHhLNG82c3hYUCsyeUpxTjRTUE5vVTdHOE1IbXNNSEdzUlBheExyV2ZyL25XeXU1cm5kV090cXJ0VU50bUVOcUZ0cXVncXM0WTgwMFo3ZVNEdlVURHZhVUdzMzFYUVowSUR2OXRCSzFUaE9Ld1BzeUFLZm1na2V5QWIvcFl6dy8xaFdlQ2d6YkNpN2xaWHZaZWFOaWEyMHBpTzFPWkpIZGlVNFQwbHk5aE9kYitObko4ZjhYMlpuTC8vOEkvaHA1NlRQNUxBalAvMStQSDVqWkxSOUE4RVpkTVJHNFdQU3g3bUt1U2l1RWZ1M014dG02cWhwTVZ4eExlK1BHVGRGenNESzVEbzRvNzhKbm1lbGpCcTJRaVcycWd2VStGcDVJMW5ETWg0VW93MEl2ems3QWxVUEdKV04wVmR0Wk4vQkVIeWFCalNOL25WNytOVWkrbUhOZ2pPNGd0QklWWnJGRVIzcWFSMUhxa3RoTXZmL0FVU1ZOdGRkSUdnMnUxVlNXWnpuQ01qWXc0TnhXUWF5M1g2ckFSV2x6Rk5xbUIvVklHUUd4SWlrNjl4cW05OHROQ2pqUXBYeXVtYmt0Vkk3KzZaalllQ3hVbGtKendSWG5IRG1PZGZuaXhKb0JTK255ZUord2Z0ajlQUnQ1bUx2UENWMEZiMDR5MlREbzFSWFBUK3EzUlR6UE1mbUF4WlFkU2hLc0x1VEpsVFd0clAvaVE0VGwwMDlQVjBIejlGQ3VkY2wyZWJXR1V6MW5ZUlhKelZFVnk0eVQ0cWEzWFBPVHZFWTVtU0d4eUUrQzZhbmt5SDJKNVBaYkVqR3A3TkJjQW9rR00vRENjWXdITS9Dd1doR1RzK0MwZW5wMlh3d0RrYVRzdzdVTE1mMjVaMzBIQmo3QXpLWmpPYXprQXpKY0RMSG9SOU95R3crUHczOStXZ3lPc013R2NMa2RETDM1K01Kd1pQNWRENGYrbWV6NmNpZlRhY2xldFpXNkhOVStqelQ2alNHSnhtRW5sUVpoUm0wSXNhSEErdzFMcG85SjdUUFZ1eVg2cGE5OG1YbWtyMzhYSmVQRGJXNHptRTFPTGJFMFdmazBkdHByM1dLR3FzWDFXMlU1OWpMcU9hVXBwdmRaYW5wVm11bEZqSXM5anh5aGJMTEF4dVRhTjQ5NzlBc3JoUzlQV1JZeFo1enNnZmU4L3MybTJ6ZVZENlBRdXNDODJua21xM2tQUlZXUFdIUGVlUSticGVZVmI0OTdydmZpb3MwenptSzR5ajFvNzJYWjNEd0tKNDJGMFVQcFp1VWZiWHo2UEt1aHp1SEVlNi80ZG1kVzc0ODhuYUt6WDN5N1VjKzNUU2JMM3krbmRLdUYydnZ5RjdONnpwWVJHM3JjNTAvNlJxbVNiUzRqdGxoUk1idHNVczZuRnQxVjlQOFpnVys1VW8rNmNROXJzTURHclFZdXh6eXZ2bVRzaC91ZGFIdWN1Q3VVMTd2N0N6SkRoNks3Z1B4SkVTUEhZK25IWTNIU0IwN0NqYVB2MmkxZW80Zmo4ZW9kVzJscGJKM0tiWlBzckhicUlkaXptOFB2STUzRlVqbEVwNm1RTXlmSDFUUHFoYm05aXZiZlJ4eE5KWFh5T3ovRFpRbXJVZXRLN0x1bW5DaHhlM0k2MWRIK0xWaC8vOXBycitmRjY5UUtaM2UweFh5SEtNUG1adVhTNDFNZnkvaktnLzMxMGJicU1xeFNrZGtIK1BVcWRRamFWVHArcHd2UDJtMFAxV2RUK09ablM4L05aSTBuUy9aQ1FLa3drS1ZLRC9BQmdUcUlkaUF2VlUyNzR2UVRmRjNPaUpQa2ZlQXpCSUkxbGpaZDE3bFgrUFVrQ3pHMHI0QjNkNDAvdVJqMkg0aEdnZVNod3B0L3ljQUFQLy9MZnNlN1RZMEFBQT0=
+kind: Secret
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  creationTimestamp: null
+  labels:
+    createdAt: "1"
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+    name: fluent-bit
+    owner: helm
+    status: deployed
+    version: "1"
+  name: sh.helm.release.v1.fluent-bit.v1
+type: helm.sh/release.v1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/version: 1.9.4
+    helm.sh/chart: fluent-bit-0.20.2
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: fluent-bit
+spec:
+  ports:
+  - name: http
+    port: 2020
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/name: fluent-bit
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app: gitpod
+    component: gitpod-installer-status
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: installation-status
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitpod
+      component: gitpod-installer-status
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        kots.io/app-slug: gitpod
+      labels:
+        app: gitpod
+        component: gitpod-installer-status
+        kots.io/app-slug: gitpod
+        kots.io/backup: velero
+    spec:
+      containers:
+      - command:
+        - /app/scripts/kots-installation-status.sh
+        envFrom:
+        - configMapRef:
+            name: gitpod-kots-config
+        image: proxy.replicated.com/proxy/gitpod/eu.gcr.io/gitpod-core-dev/build/installer:release-2022.11.1.5
+        name: installation-status
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+      imagePullSecrets:
+      - name: gitpod-registry
+      restartPolicy: Always
+      serviceAccountName: kotsadm
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app: gitpod
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/version: 1.9.4
+    component: gitpod-log-collector
+    helm.sh/chart: fluent-bit-0.20.2
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: fluent-bit
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: fluent-bit
+      app.kubernetes.io/name: fluent-bit
+  template:
+    metadata:
+      annotations:
+        checksum/config: 76a3e9c8a3fa7d5641ab44881c3680d6ecd39f4aae138f028c67d2667903d247
+        checksum/luascripts: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        kots.io/app-slug: gitpod
+      labels:
+        app: gitpod
+        app.kubernetes.io/instance: fluent-bit
+        app.kubernetes.io/name: fluent-bit
+        component: gitpod-log-collector
+        kots.io/app-slug: gitpod
+        kots.io/backup: velero
+    spec:
+      containers:
+      - image: cr.fluentbit.io/fluent/fluent-bit:1.9.4
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        name: fluent-bit
+        ports:
+        - containerPort: 2020
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: http
+        volumeMounts:
+        - mountPath: /fluent-bit/etc/fluent-bit.conf
+          name: config
+          subPath: fluent-bit.conf
+        - mountPath: /fluent-bit/etc/custom_parsers.conf
+          name: config
+          subPath: custom_parsers.conf
+        - mountPath: /var/log
+          name: varlog
+        - mountPath: /var/lib/docker/containers
+          name: varlibdockercontainers
+          readOnly: true
+        - mountPath: /etc/machine-id
+          name: etcmachineid
+          readOnly: true
+        - mountPath: /gitpod
+          name: collector
+      - args:
+        - mkdir -p /gitpod/log-collector && while true; do echo "waiting" && sleep
+          60; done
+        command:
+        - sh
+        - -c
+        image: busybox:1
+        name: kots
+        volumeMounts:
+        - mountPath: /gitpod
+          name: collector
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      imagePullSecrets:
+      - name: gitpod-registry
+      serviceAccountName: fluent-bit
+      volumes:
+      - configMap:
+          name: fluent-bit
+        name: config
+      - hostPath:
+          path: /var/log
+        name: varlog
+      - hostPath:
+          path: /var/lib/docker/containers
+        name: varlibdockercontainers
+      - hostPath:
+          path: /etc/machine-id
+          type: File
+        name: etcmachineid
+      - hostPath:
+          path: /gitpod
+          type: DirectoryOrCreate
+        name: collector
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+  labels:
+    app: gitpod
+    component: gitpod-installer
+    cursor: "26"
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: installer-26
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      annotations:
+        kots.io/app-slug: gitpod
+      labels:
+        app: gitpod
+        component: gitpod-installer
+        cursor: "26"
+        kots.io/app-slug: gitpod
+        kots.io/backup: velero
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: gitpod.io/workload_workspace_regular
+                operator: Exists
+            - matchExpressions:
+              - key: gitpod.io/workload_workspace_headless
+                operator: Exists
+      containers:
+      - command:
+        - /app/scripts/kots-install.sh
+        env:
+        - name: MOUNT_PATH
+          value: /mnt/node0
+        - name: REGISTRY_DOCKER_CONFIG_JSON
+          valueFrom:
+            secretKeyRef:
+              key: .dockerconfigjson
+              name: custom-registry-credentials
+              optional: true
+        - name: EXTERNAL_DOCKER_CONFIG_JSON
+          valueFrom:
+            secretKeyRef:
+              key: .dockerconfigjson
+              name: external-container-registry
+              optional: true
+        - name: LOCAL_REGISTRY_IMAGE_PULL_DOCKER_CONFIG_JSON
+          valueFrom:
+            secretKeyRef:
+              key: .dockerconfigjson
+              name: gitpod-registry
+              optional: true
+        envFrom:
+        - configMapRef:
+            name: gitpod-kots-config
+        image: proxy.replicated.com/proxy/gitpod/eu.gcr.io/gitpod-core-dev/build/installer:release-2022.11.1.5
+        name: installer
+        volumeMounts:
+        - mountPath: /mnt/node0
+          name: node-fs0
+          readOnly: true
+        - mountPath: /tmp
+          name: temp-storage
+      imagePullSecrets:
+      - name: gitpod-registry
+      restartPolicy: OnFailure
+      serviceAccountName: kotsadm
+      volumes:
+      - hostPath:
+          path: /
+          type: Directory
+        name: node-fs0
+      - emptyDir: {}
+        name: temp-storage
+  ttlSecondsAfterFinished: 0
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  annotations:
+    kots.io/app-slug: gitpod
+    kots.io/when: "true"
+  labels:
+    app: gitpod
+    component: gitpod-installer
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: https-certificates
+spec:
+  dnsNames:
+  - gitpod.handiansoft.net
+  - '*.gitpod.handiansoft.net'
+  - '*.ws.gitpod.handiansoft.net'
+  issuerRef:
+    kind: ClusterIssuer
+    name: gitpod-issuer
+  secretName: https-certificates
+  secretTemplate:
+    labels:
+      app: gitpod
+      component: gitpod-installer
+      kots.io/app-slug: gitpod
+      kots.io/backup: velero
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    helm.sh/hook: test-success
+    kots.io/app-slug: gitpod
+  labels:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/version: 1.9.4
+    helm.sh/chart: fluent-bit-0.20.2
+    kots.io/app-slug: gitpod
+    kots.io/backup: velero
+  name: fluent-bit-test-connection
+spec:
+  containers:
+  - args:
+    - fluent-bit:2020
+    command:
+    - wget
+    image: busybox:latest
+    imagePullPolicy: Always
+    name: wget
+  imagePullSecrets:
+  - name: gitpod-registry
+  restartPolicy: Never
